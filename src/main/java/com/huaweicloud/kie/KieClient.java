@@ -23,8 +23,12 @@ import com.huaweicloud.kie.model.KVBody;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +75,6 @@ public class KieClient {
    */
   public String putKeyValue(String key, KVBody kvBody) {
     try {
-      ObjectMapper mapper = new ObjectMapper();
       HttpResponse response = httpClient.putHttpRequest("/kie/kv/" + key, null, mapper.writeValueAsString(kvBody));
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return response.getContent();
@@ -91,13 +94,24 @@ public class KieClient {
    * @param key
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> getValueOfKey(String key, List<String> labels, String match) {
+  public List<KVResponse> getValueOfKey(String key, List<String> labels, String match,
+      String pageNum, String pageSize, String insId, String status) throws URISyntaxException {
     try {
-      StringBuilder uri = new StringBuilder("/kie/kv/" + key);
-      addParam(labels, match, null, uri);
-      HttpResponse response = httpClient.getHttpRequest(uri.toString(), null, null);
+      URIBuilder uri = new URIBuilder("/kie/kv/" + key);
+      if (labels != null && labels.size() > 0) {
+        labels.forEach(a -> uri.addParameter("label", a));
+      }
+      String str = uri
+          .addParameter("match", match)
+          .addParameter("pageNum", pageNum)
+          .addParameter("pageSize", pageSize)
+          .addParameter("status", status)
+          .build()
+          .toString();
+      Map<String, String> header = new HashMap<>();
+      header.put("insId", insId);
+      HttpResponse response = httpClient.getHttpRequest(str, header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
         });
       } else {
@@ -115,13 +129,22 @@ public class KieClient {
    *
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> listKeyValue(List<String> labels, String match, String wait) {
+  public List<KVResponse> listKeyValue(List<String> labels, String match, String wait,
+      String pageNum, String pageSize, String insId, String status) throws URISyntaxException {
     try {
-      StringBuilder uri = new StringBuilder("/kie/kv");
-      addParam(labels, match, wait, uri);
-      HttpResponse response = httpClient.getHttpRequest(uri.toString(), null, null);
+      URIBuilder uri = new URIBuilder("/kie/kv");
+      String str = uri
+          .addParameter("match", match)
+          .addParameter("pageNum", pageNum)
+          .addParameter("pageSize", pageSize)
+          .addParameter("wait", wait)
+          .addParameter("status", status)
+          .build()
+          .toString();
+      Map<String, String> header = new HashMap<>();
+      header.put("insId", insId);
+      HttpResponse response = httpClient.getHttpRequest(str, header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
         });
       } else {
@@ -135,36 +158,17 @@ public class KieClient {
     return null;
   }
 
-  private void addParam(List<String> labels, String match, String wait, StringBuilder uri) {
-    if ((labels != null && labels.size() > 0)
-        || (match != null && !match.equals(""))
-        || (wait != null && !wait.equals(""))) {
-      uri.append("?");
-    }
-    if (labels != null && labels.size() > 0) {
-      labels.forEach(a -> uri.append("&label=").append(a));
-    }
-    if (match != null && !match.equals("")) {
-      uri.append("&match=").append(match);
-    }
-    if (wait != null && !wait.equals("")) {
-      uri.append("&wait=").append(wait);
-    }
-  }
-
   /**
    * Delete remove kv
    *
    * @return void
    */
-  public void deleteKeyValue(String kvID, String labelId) {
+  public void deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
     try {
-      StringBuilder sb = new StringBuilder("/kie/kv/?kvID=");
-      sb.append(kvID);
-      if (labelId != null && !labelId.equals("")) {
-        sb.append("&labelID=").append(labelId);
-      }
-      HttpResponse response = httpClient.deleteHttpRequest(sb.toString(), null, null);
+      URIBuilder uri = new URIBuilder("/kie/kv/?kvID=" + kvID);
+      String str = uri
+          .addParameter("labelID", labelId).toString();
+      HttpResponse response = httpClient.deleteHttpRequest(str, null, null);
       if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
         LOGGER.info("Delete keyValue success");
       } else {
@@ -182,14 +186,16 @@ public class KieClient {
    *
    * @return void
    */
-  public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key) {
+  public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key, String pageNum,
+      String pageSize) throws URISyntaxException {
     try {
-      StringBuilder sb = new StringBuilder("/kie/revision/");
-      sb.append(labelId);
-      if (key != null && !key.equals("")) {
-        sb.append("&key=").append(key);
-      }
-      HttpResponse response = httpClient.getHttpRequest(sb.toString(), null, null);
+      URIBuilder uri = new URIBuilder("/kie/revision/" + labelId);
+      String str = uri
+          .addParameter("key", key)
+          .addParameter("pageNum", pageNum)
+          .addParameter("pageSize", pageSize)
+          .toString();
+      HttpResponse response = httpClient.getHttpRequest(str, null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper
             .readValue(response.getContent(), new TypeReference<List<LabelHistoryResponse>>() {

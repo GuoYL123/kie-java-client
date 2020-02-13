@@ -20,7 +20,6 @@ package com.huaweicloud.kie;
 import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.KVBody;
-import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
@@ -92,9 +91,11 @@ public class KieClient {
    * @param key
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> getValueOfKey(String key) {
+  public List<KVResponse> getValueOfKey(String key, List<String> labels, String match) {
     try {
-      HttpResponse response = httpClient.getHttpRequest("/kie/kv/" + key, null, null);
+      StringBuilder uri = new StringBuilder("/kie/kv/" + key);
+      addParam(labels, match, null, uri);
+      HttpResponse response = httpClient.getHttpRequest(uri.toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
@@ -114,9 +115,11 @@ public class KieClient {
    *
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> listKeyValue() {
+  public List<KVResponse> listKeyValue(List<String> labels, String match, String wait) {
     try {
-      HttpResponse response = httpClient.getHttpRequest("/kie/kv", null, null);
+      StringBuilder uri = new StringBuilder("/kie/kv");
+      addParam(labels, match, wait, uri);
+      HttpResponse response = httpClient.getHttpRequest(uri.toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
@@ -132,15 +135,36 @@ public class KieClient {
     return null;
   }
 
+  private void addParam(List<String> labels, String match, String wait, StringBuilder uri) {
+    if ((labels != null && labels.size() > 0)
+        || (match != null && !match.equals(""))
+        || (wait != null && !wait.equals(""))) {
+      uri.append("?");
+    }
+    if (labels != null && labels.size() > 0) {
+      labels.forEach(a -> uri.append("&label=").append(a));
+    }
+    if (match != null && !match.equals("")) {
+      uri.append("&match=").append(match);
+    }
+    if (wait != null && !wait.equals("")) {
+      uri.append("&wait=").append(wait);
+    }
+  }
+
   /**
    * Delete remove kv
    *
-   * @param kvDoc
    * @return void
    */
-  public void deleteKeyValue(KVDoc kvDoc) {
+  public void deleteKeyValue(String kvID, String labelId) {
     try {
-      HttpResponse response = httpClient.deleteHttpRequest("/kie/kv/?kvID=" + kvDoc.getId(), null, null);
+      StringBuilder sb = new StringBuilder("/kie/kv/?kvID=");
+      sb.append(kvID);
+      if (labelId != null && !labelId.equals("")) {
+        sb.append("&labelID=").append(labelId);
+      }
+      HttpResponse response = httpClient.deleteHttpRequest(sb.toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
         LOGGER.info("Delete keyValue success");
       } else {
@@ -156,12 +180,16 @@ public class KieClient {
   /**
    * Get revision
    *
-   * todo : with key
    * @return void
    */
-  public List<LabelHistoryResponse> getRevisionByLabelId(String labelId) {
+  public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key) {
     try {
-      HttpResponse response = httpClient.getHttpRequest("/kie/revision/" + labelId, null, null);
+      StringBuilder sb = new StringBuilder("/kie/revision/");
+      sb.append(labelId);
+      if (key != null && !key.equals("")) {
+        sb.append("&key=").append(key);
+      }
+      HttpResponse response = httpClient.getHttpRequest(sb.toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper
             .readValue(response.getContent(), new TypeReference<List<LabelHistoryResponse>>() {

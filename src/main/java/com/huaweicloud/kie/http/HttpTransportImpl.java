@@ -20,16 +20,32 @@ package com.huaweicloud.kie.http;
 import java.io.IOException;
 
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
 public class HttpTransportImpl implements HttpTransport {
+
+  protected static final int DEFAULT_MAX_CONNECTIONS = 1000;
+
+  protected static final int DEFAULT_MAX_PER_ROUTE = 500;
+
+  protected static final int DEFAULT_REQUEST_TIMEOUT = 5000;
+
+  protected static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 
   private static final String HEADER_CONTENT_TYPE = "Content-Type";
 
@@ -47,9 +63,31 @@ public class HttpTransportImpl implements HttpTransport {
     this.httpClient = httpClient;
   }
 
-  //todo: param and ssl
   public HttpTransportImpl() {
-    httpClient = HttpClients.createDefault();
+    //register http/https socket factory
+    Registry<ConnectionSocketFactory> connectionSocketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+        .register("http", PlainConnectionSocketFactory.INSTANCE)
+        .build();
+
+    //connection pool management
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(
+        connectionSocketFactoryRegistry);
+    connectionManager.setMaxTotal(DEFAULT_MAX_CONNECTIONS);
+    connectionManager.setDefaultMaxPerRoute(DEFAULT_MAX_PER_ROUTE);
+
+    //request parameter configuration
+    RequestConfig config = RequestConfig.custom().
+        setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT).
+        setConnectionRequestTimeout(DEFAULT_CONNECTION_TIMEOUT).
+        setSocketTimeout(DEFAULT_REQUEST_TIMEOUT).
+        build();
+
+    // construct httpClient
+    HttpClientBuilder httpClientBuilder = HttpClientBuilder.create().
+        setConnectionManager(connectionManager).
+        setDefaultRequestConfig(config);
+
+    httpClient = httpClientBuilder.build();
   }
 
   @Override

@@ -18,6 +18,7 @@
 package com.huaweicloud.kie;
 
 import com.huaweicloud.kie.http.HttpResponse;
+import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.KVBody;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
@@ -41,6 +42,10 @@ public class KieClient {
 
   public KieClient() {
     this(new KieRawClient());
+  }
+
+  public KieClient(TLSConfig tlsConfig) {
+    this(new KieRawClient(tlsConfig));
   }
 
   /**

@@ -21,6 +21,7 @@ import com.huaweicloud.kie.http.HttpRequest;
 import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.http.HttpTransport;
 import com.huaweicloud.kie.http.HttpTransportFactory;
+import com.huaweicloud.kie.http.TLSConfig;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,7 +47,12 @@ public class KieRawClient {
   private HttpTransport httpTransport;
 
   public KieRawClient() {
-    this(DEFAULT_HOST, DEFAULT_PORT, PROJECT_NAME, HttpTransportFactory.getDefaultHttpTransport());
+    this(DEFAULT_HOST, DEFAULT_PORT, PROJECT_NAME, HttpTransportFactory.getHttpTransport());
+  }
+
+  public KieRawClient(TLSConfig tlsConfig) {
+    this(DEFAULT_HOST, DEFAULT_PORT, PROJECT_NAME,
+        HttpTransportFactory.getHttpTransport(tlsConfig));
   }
 
   private KieRawClient(String host, int port, String projectName, HttpTransport httpTransport) {

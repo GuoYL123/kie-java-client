@@ -101,16 +101,21 @@ public class KieClient {
       if (labels != null && labels.size() > 0) {
         labels.forEach(a -> uri.addParameter("label", a));
       }
-      String str = uri
-          .addParameter("match", match)
-          .addParameter("pageNum", pageNum)
-          .addParameter("pageSize", pageSize)
-          .addParameter("status", status)
-          .build()
-          .toString();
+      if (match != null && !match.equals("")) {
+        uri.addParameter("match", match);
+      }
+      if (pageNum != null && !pageNum.equals("")) {
+        uri.addParameter("pageNum", pageNum);
+      }
+      if (pageSize != null && !pageSize.equals("")) {
+        uri.addParameter("pageSize", pageSize);
+      }
+      if (status != null && !status.equals("")) {
+        uri.addParameter("status", status);
+      }
       Map<String, String> header = new HashMap<>();
-      header.put("insId", insId);
-      HttpResponse response = httpClient.getHttpRequest(str, header, null);
+      header.put("instanceID", insId);
+      HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
         });
@@ -133,17 +138,27 @@ public class KieClient {
       String pageNum, String pageSize, String insId, String status) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/kv");
-      String str = uri
-          .addParameter("match", match)
-          .addParameter("pageNum", pageNum)
-          .addParameter("pageSize", pageSize)
-          .addParameter("wait", wait)
-          .addParameter("status", status)
-          .build()
-          .toString();
+      if (labels != null && labels.size() > 0) {
+        labels.forEach(a -> uri.addParameter("label", a));
+      }
+      if (match != null && !match.equals("")) {
+        uri.addParameter("match", match);
+      }
+      if (pageNum != null && !pageNum.equals("")) {
+        uri.addParameter("pageNum", pageNum);
+      }
+      if (pageSize != null && !pageSize.equals("")) {
+        uri.addParameter("pageSize", pageSize);
+      }
+      if (status != null && !status.equals("")) {
+        uri.addParameter("status", status);
+      }
+      if (wait != null && !wait.equals("")) {
+        uri.addParameter("wait", wait);
+      }
       Map<String, String> header = new HashMap<>();
-      header.put("insId", insId);
-      HttpResponse response = httpClient.getHttpRequest(str, header, null);
+      header.put("instanceID", insId);
+      HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
         });
@@ -166,9 +181,10 @@ public class KieClient {
   public void deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/kv/?kvID=" + kvID);
-      String str = uri
-          .addParameter("labelID", labelId).toString();
-      HttpResponse response = httpClient.deleteHttpRequest(str, null, null);
+      if (labelId != null && !labelId.equals("")) {
+        uri.addParameter("labelId", labelId);
+      }
+      HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
         LOGGER.info("Delete keyValue success");
       } else {
@@ -190,12 +206,16 @@ public class KieClient {
       String pageSize) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/revision/" + labelId);
-      String str = uri
-          .addParameter("key", key)
-          .addParameter("pageNum", pageNum)
-          .addParameter("pageSize", pageSize)
-          .toString();
-      HttpResponse response = httpClient.getHttpRequest(str, null, null);
+      if (key != null && !key.equals("")) {
+        uri.addParameter("key", key);
+      }
+      if (pageNum != null && !pageNum.equals("")) {
+        uri.addParameter("pageNum", pageNum);
+      }
+      if (pageSize != null && !pageSize.equals("")) {
+        uri.addParameter("pageSize", pageSize);
+      }
+      HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper
             .readValue(response.getContent(), new TypeReference<List<LabelHistoryResponse>>() {

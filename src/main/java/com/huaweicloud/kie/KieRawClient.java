@@ -17,14 +17,13 @@
 
 package com.huaweicloud.kie;
 
+import com.huaweicloud.kie.http.HttpRequest;
+import com.huaweicloud.kie.http.HttpResponse;
+import com.huaweicloud.kie.http.HttpTransport;
+import com.huaweicloud.kie.http.HttpTransportFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.servicecomb.kie.client.http.HttpRequest;
-import org.apache.servicecomb.kie.client.http.HttpResponse;
-import org.apache.servicecomb.kie.client.http.HttpTransport;
-import org.apache.servicecomb.kie.client.http.HttpTransportFactory;
 
 /**
  * Created by   on 2019/10/24.

@@ -17,16 +17,16 @@
 
 package com.huaweicloud.kie;
 
+import com.huaweicloud.kie.http.HttpResponse;
+import com.huaweicloud.kie.model.KVBody;
+import com.huaweicloud.kie.model.KVDoc;
+import com.huaweicloud.kie.model.KVResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.http.HttpStatus;
-import org.apache.servicecomb.kie.client.http.HttpResponse;
-import org.apache.servicecomb.kie.client.model.KVBody;
-import org.apache.servicecomb.kie.client.model.KVDoc;
-import org.apache.servicecomb.kie.client.model.KVResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

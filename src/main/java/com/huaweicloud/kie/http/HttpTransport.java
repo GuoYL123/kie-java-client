@@ -19,9 +19,6 @@ package com.huaweicloud.kie.http;
 
 import java.io.IOException;
 
-/**
- * Created by   on 2019/10/16.
- */
 public interface HttpTransport {
 
   HttpResponse get(HttpRequest request) throws IOException;

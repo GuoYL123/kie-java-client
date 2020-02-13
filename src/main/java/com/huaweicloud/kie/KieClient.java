@@ -21,11 +21,9 @@ import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.model.KVBody;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
+import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +31,11 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Created by   on 2019/10/28.
- */
 public class KieClient {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(KieClient.class);
+
+  private static ObjectMapper mapper = new ObjectMapper();
 
   private KieRawClient httpClient;
 
@@ -108,32 +105,24 @@ public class KieClient {
   }
 
   /**
-   * SearchByLabels get value by lables
+   * List value and key
    *
-   * @param labels
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> searchKeyValueByLabels(Map<String, String> labels) {
+  public List<KVResponse> listKeyValue() {
     try {
-      StringBuilder stringBuilder = new StringBuilder();
-      for (Entry<String, String> entry : labels.entrySet()) {
-        stringBuilder.append(entry.getKey());
-        stringBuilder.append(":");
-        stringBuilder.append(entry.getValue());
-        stringBuilder.append("+");
-      }
-      stringBuilder.deleteCharAt(stringBuilder.length() - 1);
-      HttpResponse response = httpClient.getHttpRequest("/kie/kv?q=" + stringBuilder.toString(), null, null);
+      HttpResponse response = httpClient.getHttpRequest("/kie/kv", null, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
         });
       } else {
-        LOGGER.error("search keyValue by labels fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+        LOGGER.error(
+            "list key value failed, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("search keyValue by labels fails", e);
+      LOGGER.error("list key value failed", e);
     }
     return null;
   }
@@ -156,5 +145,30 @@ public class KieClient {
     } catch (IOException e) {
       LOGGER.error("delete keyValue fails", e);
     }
+  }
+
+
+  /**
+   * Get revision
+   *
+   * todo : with key
+   * @return void
+   */
+  public List<LabelHistoryResponse> getRevisionByLabelId(String labelId) {
+    try {
+      HttpResponse response = httpClient.getHttpRequest("/kie/revision/" + labelId, null, null);
+      if (response.getStatusCode() == HttpStatus.SC_OK) {
+        return mapper
+            .readValue(response.getContent(), new TypeReference<List<LabelHistoryResponse>>() {
+            });
+      } else {
+        LOGGER.error(
+            "get revision failed, responseStatusCode={}, responseMessage={}, responseContent{}",
+            response.getStatusCode(), response.getMessage(), response.getContent());
+      }
+    } catch (IOException e) {
+      LOGGER.error("get revision failed", e);
+    }
+    return null;
   }
 }

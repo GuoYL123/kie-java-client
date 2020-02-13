@@ -25,9 +25,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by   on 2019/10/24.
- */
 public class KieRawClient {
 
   private static final String DEFAULT_HOST = "localhost";

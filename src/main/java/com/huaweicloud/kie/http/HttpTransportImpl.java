@@ -29,9 +29,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-/**
- * Created by   on 2019/10/16.
- */
 public class HttpTransportImpl implements HttpTransport {
 
   private static final String HEADER_CONTENT_TYPE = "Content-Type";
@@ -50,6 +47,7 @@ public class HttpTransportImpl implements HttpTransport {
     this.httpClient = httpClient;
   }
 
+  //todo: param and ssl
   public HttpTransportImpl() {
     httpClient = HttpClients.createDefault();
   }

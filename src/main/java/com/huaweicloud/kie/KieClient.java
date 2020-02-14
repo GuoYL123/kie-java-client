@@ -18,12 +18,14 @@
 package com.huaweicloud.kie;
 
 import com.huaweicloud.kie.http.HttpResponse;
+import com.huaweicloud.kie.http.IpPort;
 import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.KVBody;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,14 +53,24 @@ public class KieClient {
     this(new KieRawClient(tlsConfig));
   }
 
-  /**
-   * Customized host,port,projectName and if any one parameter is null, it will be defaults
-   *
-   * @param host
-   * @param port
-   */
   public KieClient(String host, int port) {
-    this.httpClient = new KieRawClient.Builder().setHost(host).setPort(port).build();
+    IpPort temp = new IpPort(host, port);
+    this.httpClient = new KieRawClient.Builder().setIpPort(Collections.singletonList(temp)).build();
+  }
+
+  public KieClient(List<IpPort> list) {
+    this.httpClient = new KieRawClient.Builder().setIpPort(list).build();
+  }
+
+
+  public KieClient(String host, int port, TLSConfig tlsConfig) {
+    IpPort temp = new IpPort(host, port);
+    this.httpClient = new KieRawClient.Builder().setIpPort(Collections.singletonList(temp))
+        .setTlsConfig(tlsConfig).build();
+  }
+
+  public KieClient(List<IpPort> list, TLSConfig tlsConfig) {
+    this.httpClient = new KieRawClient.Builder().setIpPort(list).setTlsConfig(tlsConfig).build();
   }
 
   public KieClient(KieRawClient serviceCenterRawClient) {
@@ -83,7 +95,7 @@ public class KieClient {
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("create keyValue fails", e);
+      LOGGER.error("parse object failed", e);
     }
     return null;
   }
@@ -125,7 +137,7 @@ public class KieClient {
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("get value of key fails", e);
+      LOGGER.error("parse object failed", e);
     }
     return null;
   }
@@ -170,7 +182,7 @@ public class KieClient {
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("list key value failed", e);
+      LOGGER.error("parse object failed", e);
     }
     return null;
   }
@@ -182,25 +194,20 @@ public class KieClient {
    */
   public String deleteKeyValue(String kvID, String labelId, String project)
       throws URISyntaxException {
-    try {
-      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
-      if (labelId != null && !labelId.equals("")) {
-        uri.addParameter("labelId", labelId);
-      }
-      HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
-      if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-        return "Delete keyValue success";
-      } else {
-        LOGGER.error(
-            "delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
-            response.getStatusCode(), response.getMessage(), response.getContent());
-        return "delete keyValue fails , responseStatusCode=" + response.getStatusCode()
-            + "responseMessage=" + response.getMessage() + "responseContent=" + response
-            .getContent();
-      }
-    } catch (IOException e) {
-      LOGGER.error("delete keyValue fails", e);
-      return "delete keyValue fails : " + e.getMessage();
+    URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
+    if (labelId != null && !labelId.equals("")) {
+      uri.addParameter("labelId", labelId);
+    }
+    HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
+    if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+      return "Delete keyValue success";
+    } else {
+      LOGGER.error(
+          "delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+          response.getStatusCode(), response.getMessage(), response.getContent());
+      return "delete keyValue fails , responseStatusCode=" + response.getStatusCode()
+          + "responseMessage=" + response.getMessage() + "responseContent=" + response
+          .getContent();
     }
   }
 
@@ -234,7 +241,7 @@ public class KieClient {
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("get revision failed", e);
+      LOGGER.error("parse object failed", e);
     }
     return null;
   }

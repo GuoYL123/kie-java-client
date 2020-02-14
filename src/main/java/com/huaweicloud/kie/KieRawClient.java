@@ -21,12 +21,20 @@ import com.huaweicloud.kie.http.HttpRequest;
 import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.http.HttpTransport;
 import com.huaweicloud.kie.http.HttpTransportFactory;
+import com.huaweicloud.kie.http.IpPort;
+import com.huaweicloud.kie.http.IpPortManager;
 import com.huaweicloud.kie.http.TLSConfig;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KieRawClient {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KieRawClient.class);
 
   private static final String DEFAULT_HOST = "localhost";
 
@@ -38,39 +46,37 @@ public class KieRawClient {
 
   private String basePath;
 
-  private String host;
-
-  private int port;
-
-  private String projectName;
+  private IpPortManager ipPortMgr;
 
   private HttpTransport httpTransport;
 
   public KieRawClient() {
-    this(DEFAULT_HOST, DEFAULT_PORT, HttpTransportFactory.getHttpTransport());
+    this(Collections.singletonList(new IpPort(DEFAULT_HOST, DEFAULT_PORT)),
+        HttpTransportFactory.getHttpTransport());
   }
 
   public KieRawClient(TLSConfig tlsConfig) {
-    this(DEFAULT_HOST, DEFAULT_PORT,
+    this(Collections.singletonList(new IpPort(DEFAULT_HOST, DEFAULT_PORT)),
         HttpTransportFactory.getHttpTransport(tlsConfig));
   }
 
-  private KieRawClient(String host, int port, HttpTransport httpTransport) {
-    this.host = host;
-    this.port = port;
+  private KieRawClient(List<IpPort> ipPort, HttpTransport httpTransport) {
     this.httpTransport = httpTransport;
 
-    // check that host has scheme or not
-    String hostLowercase = host.toLowerCase();
-    if (!hostLowercase.startsWith("https://") && !hostLowercase.startsWith("http://")) {
-      // no protocol in host, use default 'http'
-      host = "http://" + host;
-    }
+    ipPort.forEach(item -> {
+      String hostLowercase = item.getHost().toLowerCase();
+      if (!hostLowercase.startsWith("https://") && !hostLowercase.startsWith("http://")) {
+        // no protocol in host, use default 'http'
+        item.setHost("http://" + item.getHost());
+      }
+    });
 
-    this.basePath = host + ":" + port + "/" + V1_PREFIX;
+    this.ipPortMgr = new IpPortManager(ipPort);
+
+    this.basePath = ipPortMgr.getHost() + ":" + ipPortMgr.getPort() + "/" + V1_PREFIX;
   }
 
-  public HttpResponse getHttpRequest(String url, Map<String, String> headers, String content) throws IOException {
+  public HttpResponse getHttpRequest(String url, Map<String, String> headers, String content) {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -78,10 +84,16 @@ public class KieRawClient {
 
     HttpRequest httpRequest = new HttpRequest(basePath + url, headers, content);
 
-    return httpTransport.get(httpRequest);
+    try {
+      return httpTransport.get(httpRequest);
+    } catch (IOException e) {
+      toggle();
+      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+    }
+    return null;
   }
 
-  public HttpResponse postHttpRequest(String url, Map<String, String> headers, String content) throws IOException {
+  public HttpResponse postHttpRequest(String url, Map<String, String> headers, String content) {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -89,10 +101,16 @@ public class KieRawClient {
 
     HttpRequest httpRequest = new HttpRequest(basePath + url, headers, content);
 
-    return httpTransport.post(httpRequest);
+    try {
+      return httpTransport.post(httpRequest);
+    } catch (IOException e) {
+      toggle();
+      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+    }
+    return null;
   }
 
-  public HttpResponse putHttpRequest(String url, Map<String, String> headers, String content) throws IOException {
+  public HttpResponse putHttpRequest(String url, Map<String, String> headers, String content) {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -100,75 +118,70 @@ public class KieRawClient {
 
     HttpRequest httpRequest = new HttpRequest(basePath + url, headers, content);
 
-    return httpTransport.put(httpRequest);
+    try {
+      return httpTransport.put(httpRequest);
+    } catch (IOException e) {
+      toggle();
+      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+    }
+    return null;
   }
 
-  public HttpResponse deleteHttpRequest(String url, Map<String, String> headers, String content) throws IOException {
+  public HttpResponse deleteHttpRequest(String url, Map<String, String> headers, String content) {
 
     if (headers == null) {
-      headers = new HashMap<String, String>();
+      headers = new HashMap<>();
     }
 
     HttpRequest httpRequest = new HttpRequest(basePath + url, headers, content);
 
-    return httpTransport.delete(httpRequest);
+    try {
+      return httpTransport.delete(httpRequest);
+    } catch (IOException e) {
+      toggle();
+      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+    }
+    return null;
   }
 
-  public HttpTransport getHttpTransport() {
-    return httpTransport;
-  }
-
-  public void setHttpTransport(HttpTransport httpTransport) {
-    this.httpTransport = httpTransport;
+  private void toggle() {
+    ipPortMgr.toggle();
+    this.basePath = ipPortMgr.getHost() + ":" + ipPortMgr.getPort() + "/" + V1_PREFIX;
   }
 
   public static class Builder {
-    private String host;
 
-    private int port;
+    private List<IpPort> ipPort;
 
-    private HttpTransport httpTransport;
+    private TLSConfig tlsConfig;
 
     public Builder() {
-      this.host = DEFAULT_HOST;
-      this.port = DEFAULT_PORT;
+      ipPort = Collections.singletonList(new IpPort(DEFAULT_HOST, DEFAULT_PORT));
     }
 
-    public int getPort() {
-      return port;
+    public List<IpPort> getIpPort() {
+      return ipPort;
     }
 
-    public Builder setPort(int port) {
-      if (port <= 0) {
-        port = DEFAULT_PORT;
-      }
-      this.port = port;
+    public Builder setIpPort(List<IpPort> ipPort) {
+      this.ipPort = ipPort;
       return this;
     }
 
-    public String getHost() {
-      return host;
+    public TLSConfig getTlsConfig() {
+      return tlsConfig;
     }
 
-    public Builder setHost(String host) {
-      if (host == null) {
-        host = DEFAULT_HOST;
-      }
-      this.host = host;
-      return this;
-    }
-
-    public HttpTransport getHttpTransport() {
-      return httpTransport;
-    }
-
-    public Builder setHttpTransport(HttpTransport httpTransport) {
-      this.httpTransport = httpTransport;
+    public Builder setTlsConfig(TLSConfig tlsConfig) {
+      this.tlsConfig = tlsConfig;
       return this;
     }
 
     public KieRawClient build() {
-      return new KieRawClient(host, port, httpTransport);
+      if (tlsConfig == null) {
+        return new KieRawClient(ipPort, HttpTransportFactory.getHttpTransport());
+      }
+      return new KieRawClient(ipPort, HttpTransportFactory.getHttpTransport(tlsConfig));
     }
   }
 }

@@ -34,7 +34,7 @@ public class KieRawClient {
 
   private static final String PROJECT_NAME = "default";
 
-  private static final String V4_PREFIX = "v1";
+  private static final String V1_PREFIX = "v1";
 
   private String basePath;
 
@@ -47,18 +47,17 @@ public class KieRawClient {
   private HttpTransport httpTransport;
 
   public KieRawClient() {
-    this(DEFAULT_HOST, DEFAULT_PORT, PROJECT_NAME, HttpTransportFactory.getHttpTransport());
+    this(DEFAULT_HOST, DEFAULT_PORT, HttpTransportFactory.getHttpTransport());
   }
 
   public KieRawClient(TLSConfig tlsConfig) {
-    this(DEFAULT_HOST, DEFAULT_PORT, PROJECT_NAME,
+    this(DEFAULT_HOST, DEFAULT_PORT,
         HttpTransportFactory.getHttpTransport(tlsConfig));
   }
 
-  private KieRawClient(String host, int port, String projectName, HttpTransport httpTransport) {
+  private KieRawClient(String host, int port, HttpTransport httpTransport) {
     this.host = host;
     this.port = port;
-    this.projectName = projectName;
     this.httpTransport = httpTransport;
 
     // check that host has scheme or not
@@ -68,7 +67,7 @@ public class KieRawClient {
       host = "http://" + host;
     }
 
-    this.basePath = host + ":" + port + "/" + V4_PREFIX + "/" + projectName;
+    this.basePath = host + ":" + port + "/" + V1_PREFIX;
   }
 
   public HttpResponse getHttpRequest(String url, Map<String, String> headers, String content) throws IOException {
@@ -128,26 +127,11 @@ public class KieRawClient {
 
     private int port;
 
-    private String projectName;
-
     private HttpTransport httpTransport;
 
     public Builder() {
       this.host = DEFAULT_HOST;
       this.port = DEFAULT_PORT;
-      this.projectName = PROJECT_NAME;
-    }
-
-    public String getProjectName() {
-      return projectName;
-    }
-
-    public Builder setProjectName(String projectName) {
-      if (projectName == null) {
-        projectName = PROJECT_NAME;
-      }
-      this.projectName = projectName;
-      return this;
     }
 
     public int getPort() {
@@ -184,7 +168,7 @@ public class KieRawClient {
     }
 
     public KieRawClient build() {
-      return new KieRawClient(host, port, projectName, httpTransport);
+      return new KieRawClient(host, port, httpTransport);
     }
   }
 }

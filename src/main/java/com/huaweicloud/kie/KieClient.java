@@ -59,7 +59,7 @@ public class KieClient {
    * @param projectName
    */
   public KieClient(String host, int port, String projectName) {
-    this.httpClient = new KieRawClient.Builder().setHost(host).setPort(port).setProjectName(projectName).build();
+    this.httpClient = new KieRawClient.Builder().setHost(host).setPort(port).build();
   }
 
   public KieClient(KieRawClient serviceCenterRawClient) {
@@ -73,9 +73,10 @@ public class KieClient {
    * @param kvBody
    * @return key-value json string; when some error happens, return null
    */
-  public String putKeyValue(String key, KVBody kvBody) {
+  public String putKeyValue(String key, KVBody kvBody, String project) {
     try {
-      HttpResponse response = httpClient.putHttpRequest("/kie/kv/" + key, null, mapper.writeValueAsString(kvBody));
+      HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/" + key, null,
+          mapper.writeValueAsString(kvBody));
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return response.getContent();
       } else {
@@ -95,9 +96,10 @@ public class KieClient {
    * @return List<KVResponse>; when some error happens, return null
    */
   public List<KVResponse> getValueOfKey(String key, List<String> labels, String match,
-      String pageNum, String pageSize, String sessionID, String status) throws URISyntaxException {
+      String pageNum, String pageSize, String sessionID, String status, String project)
+      throws URISyntaxException {
     try {
-      URIBuilder uri = new URIBuilder("/kie/kv/" + key);
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + key);
       if (labels != null && labels.size() > 0) {
         labels.forEach(a -> uri.addParameter("label", a));
       }
@@ -135,9 +137,10 @@ public class KieClient {
    * @return List<KVResponse>; when some error happens, return null
    */
   public List<KVResponse> listKeyValue(List<String> labels, String match, String wait,
-      String pageNum, String pageSize, String sessionID, String status) throws URISyntaxException {
+      String pageNum, String pageSize, String sessionID, String status, String project)
+      throws URISyntaxException {
     try {
-      URIBuilder uri = new URIBuilder("/kie/kv");
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv");
       if (labels != null && labels.size() > 0) {
         labels.forEach(a -> uri.addParameter("label", a));
       }
@@ -178,9 +181,10 @@ public class KieClient {
    *
    * @return void
    */
-  public String deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
+  public String deleteKeyValue(String kvID, String labelId, String project)
+      throws URISyntaxException {
     try {
-      URIBuilder uri = new URIBuilder("/kie/kv/" + kvID);
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
       if (labelId != null && !labelId.equals("")) {
         uri.addParameter("labelId", labelId);
       }
@@ -208,9 +212,9 @@ public class KieClient {
    * @return void
    */
   public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key, String pageNum,
-      String pageSize) throws URISyntaxException {
+      String pageSize, String project) throws URISyntaxException {
     try {
-      URIBuilder uri = new URIBuilder("/kie/revision/" + labelId);
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/revision/" + labelId);
       if (key != null && !key.equals("")) {
         uri.addParameter("key", key);
       }

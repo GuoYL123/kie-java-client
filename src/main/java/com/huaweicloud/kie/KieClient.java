@@ -178,7 +178,7 @@ public class KieClient {
    *
    * @return void
    */
-  public void deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
+  public String deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/kv/" + kvID);
       if (labelId != null && !labelId.equals("")) {
@@ -186,13 +186,18 @@ public class KieClient {
       }
       HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
       if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-        LOGGER.info("Delete keyValue success");
+        return "Delete keyValue success";
       } else {
-        LOGGER.error("delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+        LOGGER.error(
+            "delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
+        return "delete keyValue fails , responseStatusCode=" + response.getStatusCode()
+            + "responseMessage=" + response.getMessage() + "responseContent=" + response
+            .getContent();
       }
     } catch (IOException e) {
       LOGGER.error("delete keyValue fails", e);
+      return "delete keyValue fails : " + e.getMessage();
     }
   }
 

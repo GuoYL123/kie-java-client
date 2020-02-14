@@ -95,7 +95,7 @@ public class KieClient {
    * @return List<KVResponse>; when some error happens, return null
    */
   public List<KVResponse> getValueOfKey(String key, List<String> labels, String match,
-      String pageNum, String pageSize, String insId, String status) throws URISyntaxException {
+      String pageNum, String pageSize, String sessionID, String status) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/kv/" + key);
       if (labels != null && labels.size() > 0) {
@@ -114,7 +114,7 @@ public class KieClient {
         uri.addParameter("status", status);
       }
       Map<String, String> header = new HashMap<>();
-      header.put("instanceID", insId);
+      header.put("sessionID", sessionID);
       HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
@@ -135,7 +135,7 @@ public class KieClient {
    * @return List<KVResponse>; when some error happens, return null
    */
   public List<KVResponse> listKeyValue(List<String> labels, String match, String wait,
-      String pageNum, String pageSize, String insId, String status) throws URISyntaxException {
+      String pageNum, String pageSize, String sessionID, String status) throws URISyntaxException {
     try {
       URIBuilder uri = new URIBuilder("/kie/kv");
       if (labels != null && labels.size() > 0) {
@@ -157,7 +157,7 @@ public class KieClient {
         uri.addParameter("wait", wait);
       }
       Map<String, String> header = new HashMap<>();
-      header.put("instanceID", insId);
+      header.put("sessionID", sessionID);
       HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
@@ -180,7 +180,7 @@ public class KieClient {
    */
   public void deleteKeyValue(String kvID, String labelId) throws URISyntaxException {
     try {
-      URIBuilder uri = new URIBuilder("/kie/kv/?kvID=" + kvID);
+      URIBuilder uri = new URIBuilder("/kie/kv/" + kvID);
       if (labelId != null && !labelId.equals("")) {
         uri.addParameter("labelId", labelId);
       }

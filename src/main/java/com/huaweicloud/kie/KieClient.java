@@ -56,9 +56,8 @@ public class KieClient {
    *
    * @param host
    * @param port
-   * @param projectName
    */
-  public KieClient(String host, int port, String projectName) {
+  public KieClient(String host, int port) {
     this.httpClient = new KieRawClient.Builder().setHost(host).setPort(port).build();
   }
 

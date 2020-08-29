@@ -151,6 +151,6 @@ public class HttpTransportImpl implements HttpTransport {
       context = EntityUtils.toString(response.getEntity(), "UTF-8");
     }
 
-    return new HttpResponse(statusCode, messgae, context);
+    return new HttpResponse(statusCode, messgae, context, response.getAllHeaders());
   }
 }

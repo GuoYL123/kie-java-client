@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 
 public class KVDoc {
 
-  @JsonAlias("_id")
   private String id;
 
   private String check;
@@ -44,6 +43,8 @@ public class KVDoc {
 
   @JsonAlias("value_type")
   private String valueType;
+
+  private String status;
 
   public String getId() {
     return id;
@@ -115,5 +116,29 @@ public class KVDoc {
 
   public String getValueType() {
     return valueType;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  @Override
+  public String toString() {
+    return "KVDoc{" +
+        "id='" + id + '\'' +
+        ", check='" + check + '\'' +
+        ", domain='" + domain + '\'' +
+        ", key='" + key + '\'' +
+        ", labelId='" + labelId + '\'' +
+        ", labels=" + labels +
+        ", revision=" + revision +
+        ", value='" + value + '\'' +
+        ", valueType='" + valueType + '\'' +
+        ", status='" + status + '\'' +
+        '}';
   }
 }

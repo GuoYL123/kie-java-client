@@ -24,12 +24,32 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 
 public class KVBody {
 
+  private String key;
+
   private Map<String, String> labels = new HashMap<String, String>();
+
+  private String status;
 
   private String value;
 
   @JsonAlias("value_type")
   private String valueType;
+
+  public String getKey() {
+    return key;
+  }
+
+  public void setKey(String key) {
+    this.key = key;
+  }
+
+  public String getStatus() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
 
   public Map<String, String> getLabels() {
     return labels;

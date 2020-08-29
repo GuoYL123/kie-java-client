@@ -17,6 +17,10 @@
 
 package com.huaweicloud.kie.http;
 
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.http.Header;
+
 public class HttpResponse {
 
   private int statusCode;
@@ -25,11 +29,16 @@ public class HttpResponse {
 
   private String content;
 
+  private Map<String, String> headers = new HashMap<>();
+
   public HttpResponse() {
 
   }
 
-  HttpResponse(int statusCode, String message, String content) {
+  HttpResponse(int statusCode, String message, String content, Header[] headers) {
+    for (Header header : headers) {
+      this.headers.put(header.getName(), header.getValue());
+    }
     this.statusCode = statusCode;
     this.content = content;
     this.message = message;
@@ -57,5 +66,17 @@ public class HttpResponse {
 
   public void setContent(String content) {
     this.content = content;
+  }
+
+  public Map<String, String> getHeaders() {
+    return headers;
+  }
+
+  public String getHeader(String key) {
+    return headers.get(key);
+  }
+
+  public void setHeaders(Map<String, String> headers) {
+    this.headers = headers;
   }
 }

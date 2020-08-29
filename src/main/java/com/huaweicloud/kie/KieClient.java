@@ -21,9 +21,11 @@ import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.http.IpPort;
 import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.KVBody;
+import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,6 +44,8 @@ public class KieClient {
   private static final Logger LOGGER = LoggerFactory.getLogger(KieClient.class);
 
   private static ObjectMapper mapper = new ObjectMapper();
+
+  private Map<String, String> revisionMap = new HashMap<>();
 
   private KieRawClient httpClient;
 
@@ -80,22 +84,47 @@ public class KieClient {
   /**
    * Create value of a key
    *
-   * @param key
    * @param kvBody
-   * @return key-value json string; when some error happens, return null
+   * @param project
+   * @return
    */
-  public String putKeyValue(String key, KVBody kvBody, String project) {
+  public String postKeyValue(KVBody kvBody, String project) {
     try {
-      HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/" + key, null,
+      HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/", null,
           mapper.writeValueAsString(kvBody));
       if (response.getStatusCode() == HttpStatus.SC_OK) {
         return response.getContent();
       } else {
-        LOGGER.error("create keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+        LOGGER.error(
+            "create keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("parse object failed", e);
+      LOGGER.error("io exception , ", e);
+    }
+    return null;
+  }
+
+  /**
+   * Modify value of a key
+   *
+   * @param kvID
+   * @param kvBody
+   * @return key-value json string; when some error happens, return null
+   */
+  public String putKeyValue(String kvID, KVBody kvBody, String project) {
+    try {
+      HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/" + kvID, null,
+          mapper.writeValueAsString(kvBody));
+      if (response.getStatusCode() == HttpStatus.SC_OK) {
+        return response.getContent();
+      } else {
+        LOGGER.error(
+            "mdoify keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+            response.getStatusCode(), response.getMessage(), response.getContent());
+      }
+    } catch (IOException e) {
+      LOGGER.error("io exception , ", e);
     }
     return null;
   }
@@ -106,54 +135,16 @@ public class KieClient {
    * @param key
    * @return List<KVResponse>; when some error happens, return null
    */
-  public List<KVResponse> getValueOfKey(String key, List<String> labels, String match,
-      String pageNum, String pageSize, String sessionID, String status, String project)
-      throws URISyntaxException {
-    try {
-      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + key);
-      if (labels != null && labels.size() > 0) {
-        labels.forEach(a -> uri.addParameter("label", a));
-      }
-      if (match != null && !match.equals("")) {
-        uri.addParameter("match", match);
-      }
-      if (pageNum != null && !pageNum.equals("")) {
-        uri.addParameter("pageNum", pageNum);
-      }
-      if (pageSize != null && !pageSize.equals("")) {
-        uri.addParameter("pageSize", pageSize);
-      }
-      if (status != null && !status.equals("")) {
-        uri.addParameter("status", status);
-      }
-      Map<String, String> header = new HashMap<>();
-      header.put("sessionID", sessionID);
-      HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
-      if (response.getStatusCode() == HttpStatus.SC_OK) {
-        return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
-        });
-      } else {
-        LOGGER.error("get value of key fails, responseStatusCode={}, responseMessage={}, responseContent{}",
-            response.getStatusCode(), response.getMessage(), response.getContent());
-      }
-    } catch (IOException e) {
-      LOGGER.error("parse object failed", e);
-    }
-    return null;
-  }
-
-  /**
-   * List value and key
-   *
-   * @return List<KVResponse>; when some error happens, return null
-   */
-  public List<KVResponse> listKeyValue(List<String> labels, String match, String wait,
-      String pageNum, String pageSize, String sessionID, String status, String project)
-      throws URISyntaxException {
+  public KVResponse queryKV(String key, Map<String, String> labels, String match,
+      String pageNum, String pageSize, String sessionID, String status, String project,
+      String wait, boolean isWatch) {
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/kv");
       if (labels != null && labels.size() > 0) {
-        labels.forEach(a -> uri.addParameter("label", a));
+        labels.forEach((k, v) -> uri.addParameter("label", k + ":" + v));
+      }
+      if (key != null && !key.equals("")) {
+        uri.addParameter("key", key);
       }
       if (match != null && !match.equals("")) {
         uri.addParameter("match", match);
@@ -170,19 +161,45 @@ public class KieClient {
       if (wait != null && !wait.equals("")) {
         uri.addParameter("wait", wait);
       }
+      if (isWatch) {
+        uri.addParameter("revision", revisionMap.get(key));
+      }
       Map<String, String> header = new HashMap<>();
       header.put("sessionID", sessionID);
       HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
-        return mapper.readValue(response.getContent(), new TypeReference<List<KVResponse>>() {
-        });
+        revisionMap.put(key, response.getHeader("X-Kie-Revision"));
+        return mapper.readValue(response.getContent(), KVResponse.class);
+      } else if (response.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
+        return null;
+      } else {
+        LOGGER.error("get value of key fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+            response.getStatusCode(), response.getMessage(), response.getContent());
+      }
+    } catch (IOException e) {
+      LOGGER.error("io exception , ", e);
+    } catch (URISyntaxException e) {
+      LOGGER.error("parse object failed ,", e);
+    }
+    //todo: throw 异常
+    return null;
+  }
+
+  public KVDoc getKVByID(String kvID, String project) {
+    try {
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
+      HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), null, null);
+      if (response.getStatusCode() == HttpStatus.SC_OK) {
+        return mapper.readValue(response.getContent(), KVDoc.class);
       } else {
         LOGGER.error(
             "list key value failed, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("parse object failed", e);
+      LOGGER.error("io exception , ", e);
+    } catch (URISyntaxException e) {
+      LOGGER.error("parse object failed ,", e);
     }
     return null;
   }
@@ -192,23 +209,24 @@ public class KieClient {
    *
    * @return void
    */
-  public String deleteKeyValue(String kvID, String labelId, String project)
-      throws URISyntaxException {
-    URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
-    if (labelId != null && !labelId.equals("")) {
-      uri.addParameter("labelId", labelId);
+  public String deleteKeyValue(String kvID, String labelId, String project) {
+    try {
+      URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
+      if (labelId != null && !labelId.equals("")) {
+        uri.addParameter("labelId", labelId);
+      }
+      HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
+      if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
+        return "Delete keyValue success";
+      } else {
+        LOGGER.error(
+            "delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
+            response.getStatusCode(), response.getMessage(), response.getContent());
+      }
+    } catch (URISyntaxException e) {
+      LOGGER.error("parse object failed ,", e);
     }
-    HttpResponse response = httpClient.deleteHttpRequest(uri.build().toString(), null, null);
-    if (response.getStatusCode() == HttpStatus.SC_NO_CONTENT) {
-      return "Delete keyValue success";
-    } else {
-      LOGGER.error(
-          "delete keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
-          response.getStatusCode(), response.getMessage(), response.getContent());
-      return "delete keyValue fails , responseStatusCode=" + response.getStatusCode()
-          + "responseMessage=" + response.getMessage() + "responseContent=" + response
-          .getContent();
-    }
+    return null;
   }
 
 
@@ -218,7 +236,7 @@ public class KieClient {
    * @return void
    */
   public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key, String pageNum,
-      String pageSize, String project) throws URISyntaxException {
+      String pageSize, String project) {
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/revision/" + labelId);
       if (key != null && !key.equals("")) {
@@ -241,7 +259,9 @@ public class KieClient {
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
     } catch (IOException e) {
-      LOGGER.error("parse object failed", e);
+      LOGGER.error("io exception , ", e);
+    } catch (URISyntaxException e) {
+      LOGGER.error("parse object failed ,", e);
     }
     return null;
   }

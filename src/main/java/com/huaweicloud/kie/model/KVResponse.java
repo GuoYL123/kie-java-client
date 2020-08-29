@@ -23,8 +23,6 @@ public class KVResponse {
 
   private List<KVDoc> data;
 
-  private LabelDocResponse label;
-
   private Integer total;
 
   public Integer getTotal() {
@@ -39,15 +37,7 @@ public class KVResponse {
     return data;
   }
 
-  public LabelDocResponse getLabel() {
-    return label;
-  }
-
   public void setData(List<KVDoc> data) {
     this.data = data;
-  }
-
-  public void setLabel(LabelDocResponse label) {
-    this.label = label;
   }
 }

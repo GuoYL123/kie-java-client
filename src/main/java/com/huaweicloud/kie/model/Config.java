@@ -1,5 +1,6 @@
 package com.huaweicloud.kie.model;
 
+import com.huaweicloud.kie.event.KieConfigEventBus;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -19,13 +20,13 @@ public class Config {
   }
 
   public void addListener(Function<Config, Void> callback) {
-    //todo: 获取到单例的
-//    DemoRepository.getInstance().getKieEventBus()
-//        .register(event -> {
-//          if (event.getMessage().equals(key)) {
-//            callback.apply(this);
-//          }
-//        });
+    KieConfigEventBus.getInstance()
+        .register(event -> {
+          if (event.getMessage().equals(key)) {
+            callback.apply(this);
+          }
+        });
+
   }
 
   public String getKey() {

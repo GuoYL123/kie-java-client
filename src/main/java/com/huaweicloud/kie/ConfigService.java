@@ -14,10 +14,9 @@ public class ConfigService {
 
   private TreeMap<String, String> priorityLabels;
 
-  //todo: 单例bean管理
   private ConfigRepository configRepository;
 
-  private void init(TreeMap<String, String> priorityLabels) {
+  public void init(TreeMap<String, String> priorityLabels) {
     this.priorityLabels = priorityLabels;
     Map<String, String> queryLabel = new HashMap<>();
     if (priorityLabels != null && priorityLabels.size() > 0) {

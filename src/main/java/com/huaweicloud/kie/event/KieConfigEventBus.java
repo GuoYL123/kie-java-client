@@ -26,7 +26,16 @@ import java.util.List;
  **/
 public class KieConfigEventBus {
 
+  private static KieConfigEventBus eventBus = new KieConfigEventBus();
+
   private List<KieConfigListener> listeners = new ArrayList<>();
+
+  private KieConfigEventBus() {
+  }
+
+  public static KieConfigEventBus getInstance() {
+    return eventBus;
+  }
 
   public void register(KieConfigListener listener) {
     listeners.add(listener);

@@ -25,7 +25,6 @@ import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.LabelHistoryResponse;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -182,8 +181,7 @@ public class KieClient {
     } catch (URISyntaxException e) {
       LOGGER.error("parse object failed ,", e);
     }
-    //todo: throw 异常
-    return null;
+    throw new RuntimeException("error occur when fetch config.");
   }
 
   public KVDoc getKVByID(String kvID, String project) {

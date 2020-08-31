@@ -16,8 +16,7 @@ public class ConfigRepository {
 
   private KieClient kieClient = new KieClient();
 
-  //todo: 单例bean管理
-  private KieConfigEventBus kieConfigEventBus = new KieConfigEventBus();
+  private KieConfigEventBus kieConfigEventBus = KieConfigEventBus.getInstance();
 
   private Map<String, String> queryLabel;
 

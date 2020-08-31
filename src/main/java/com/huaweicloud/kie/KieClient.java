@@ -131,6 +131,7 @@ public class KieClient {
 
   /**
    * Get value of a key
+   * todo: 如果获取增量数据？也许kie可以实现增量数据的推送
    *
    * @param key
    * @return List<KVResponse>; when some error happens, return null

@@ -43,7 +43,7 @@ public class ConfigService {
   public Config getConfig(String key) {
     factoryMap.putIfAbsent(key, new FileConfigFactory(configRepository));
     AbstractConfigFactory configFactory = factoryMap.get(key);
-    return configFactory.getConfig(priorityLabels);
+    return configFactory.getConfig(priorityLabels, key);
   }
 
 
@@ -54,8 +54,8 @@ public class ConfigService {
    * @return
    */
   public Config getConfig() {
-    factoryMap.putIfAbsent(DEFAULT_KEY, new KVConfigFactory(configRepository));
+    factoryMap.putIfAbsent(DEFAULT_KEY, new MarshalKVConfigFactory(configRepository));
     AbstractConfigFactory configFactory = factoryMap.get(DEFAULT_KEY);
-    return configFactory.getConfig(priorityLabels);
+    return configFactory.getConfig(priorityLabels, DEFAULT_KEY);
   }
 }

@@ -24,7 +24,7 @@ public abstract class AbstractConfigFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFactory.class);
 
-  abstract Config getConfig(TreeMap<String, String> priorityLabels);
+  abstract Config getConfig(TreeMap<String, String> priorityLabels, String key);
 
   protected Map<String, Object> processValueType(KVDoc kvDoc) {
     ValueType vtype;

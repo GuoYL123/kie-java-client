@@ -37,9 +37,8 @@ public class ConfigRepository {
 
 
   private void watch() {
-    KVResponse remoteConfig = kieClient.queryKV(null, queryLabel, null, null,
-        null, "", KVStatus.enabled.name(), "default", "30s", true);
-    //如果数据变更
+    KVResponse remoteConfig = getConfig();
+    //如果数据没变更
     if (remoteConfig == null) {
       EXECUTOR.execute(this::watch);
       return;
@@ -52,5 +51,14 @@ public class ConfigRepository {
 
   public KVResponse getSourceData() {
     return remoteConfig;
+  }
+
+  /**
+   * todo: 落盘实现
+   * @return
+   */
+  private KVResponse getConfig() {
+    return kieClient.queryKV(null, queryLabel, null, null,
+        null, "", KVStatus.enabled.name(), "default", "30s", true);
   }
 }

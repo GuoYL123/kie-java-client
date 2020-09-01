@@ -139,7 +139,6 @@ public class KieClient {
   public KVResponse queryKV(String key, Map<String, String> labels, String match,
       String pageNum, String pageSize, String sessionID, String status, String project,
       String wait, boolean isWatch) throws IOException {
-    //todo: 限流
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/kv");
       if (labels != null && labels.size() > 0) {

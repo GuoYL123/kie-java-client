@@ -58,6 +58,7 @@ public class ConfigRepository {
   }
 
   /**
+   * todo: 限流实现
    * todo: 落盘实现
    * @return
    */
@@ -66,7 +67,6 @@ public class ConfigRepository {
       return kieClient.queryKV(null, queryLabel, null, null,
           null, "", KVStatus.enabled.name(), "default", "30s", true);
     } catch (IOException e) {
-      //todo: 限流
       try {
         Thread.sleep(3000);
       } catch (InterruptedException ex) {

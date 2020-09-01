@@ -21,3 +21,5 @@ After you launch kie server, you can browse API doc in http://127.0.0.1:30110/ap
 4. 支持解析ini和json格式的配置内容。
 5. 在进行marshal时要区分不同value type的优先级，目前没有区分，优先级随机，可能发生覆盖。
 6. 同一label下的config都会接受到event，所以会出现接收到event但是配置没有发生变化的情况，业务要自己评估影响。
+
+### [使用指南](./doc/manual.md)

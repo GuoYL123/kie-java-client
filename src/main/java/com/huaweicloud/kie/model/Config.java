@@ -3,7 +3,7 @@ package com.huaweicloud.kie.model;
 import com.huaweicloud.kie.event.ConfigChangeEvent;
 import com.huaweicloud.kie.event.KieConfigEventBus;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  * @Author GuoYl123
@@ -26,8 +26,8 @@ public class Config {
    *
    * @param callback
    */
-  public void addListener(Function<ConfigChangeEvent, Void> callback) {
-    KieConfigEventBus.getInstance().register(callback::apply);
+  public void addListener(Consumer<ConfigChangeEvent> callback) {
+    KieConfigEventBus.getInstance().register(callback::accept);
   }
 
   public String getKey() {

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -25,35 +24,18 @@ public class MarshalKVConfigFactory extends AbstractConfigFactory {
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
     List<KVDoc> kvList = dataSource.getSourceData().getData().stream()
         .filter(data -> !data.getKey().startsWith(FILE_PREFIX)).collect(Collectors.toList());
-    return stageConfig(kvList, () -> new Config(key, marshal(kvList, priorityLabels)));
+    return stageConfig(kvList, () -> marshal(kvList, priorityLabels, key));
   }
 
-  private Map<String, Object> marshal(List<KVDoc> kvList, TreeMap<String, String> priorityLabels) {
-    LinkedList<List<KVDoc>> priorityKVList = new LinkedList<>();
-    for (Entry<String, String> entry : priorityLabels.entrySet()) {
-      List<KVDoc> tempList;
-      if (priorityKVList.isEmpty()) {
-        priorityKVList.add(filterByLabel(kvList, entry));
-        continue;
-      } else {
-        tempList = priorityKVList.getLast();
-      }
-      priorityKVList.add(filterByLabel(tempList, entry));
-    }
-    Map<String, Object> configs = new HashMap<>();
+  private Config marshal(List<KVDoc> kvList, TreeMap<String, String> priorityLabels, String key) {
+    LinkedList<List<KVDoc>> priorityKVList = sortByProority(kvList, priorityLabels);
+    Map<String, Object> configsMap = new HashMap<>();
     //todo: 不同value Type的优先级
     for (List<KVDoc> kvDocs : priorityKVList) {
       for (KVDoc kvDoc : kvDocs) {
-        configs.putAll(processValueType(kvDoc));
+        configsMap.putAll(processValueType(kvDoc));
       }
     }
-    return configs;
-  }
-
-  private List<KVDoc> filterByLabel(List<KVDoc> tempList, Entry<String, String> label) {
-    return tempList.stream().filter(
-        kv -> kv.getLabels().containsKey(label.getKey()) &&
-            kv.getLabels().get(label.getKey()).equals(label.getValue()))
-        .collect(Collectors.toList());
+    return new Config(key, configsMap);
   }
 }

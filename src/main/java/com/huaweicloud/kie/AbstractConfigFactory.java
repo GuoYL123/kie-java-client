@@ -10,11 +10,14 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -110,5 +113,29 @@ public abstract class AbstractConfigFactory {
     }
     stageConfig = function.get();
     return stageConfig;
+  }
+
+
+  protected LinkedList<List<KVDoc>> sortByProority(List<KVDoc> kvList,
+      TreeMap<String, String> priorityLabels) {
+    LinkedList<List<KVDoc>> priorityKVList = new LinkedList<>();
+    for (Entry<String, String> entry : priorityLabels.entrySet()) {
+      List<KVDoc> tempList;
+      if (priorityKVList.isEmpty()) {
+        priorityKVList.add(filterByLabel(kvList, entry));
+        continue;
+      } else {
+        tempList = priorityKVList.getLast();
+      }
+      priorityKVList.add(filterByLabel(tempList, entry));
+    }
+    return priorityKVList;
+  }
+
+  private List<KVDoc> filterByLabel(List<KVDoc> tempList, Entry<String, String> label) {
+    return tempList.stream().filter(
+        kv -> kv.getLabels().containsKey(label.getKey()) &&
+            kv.getLabels().get(label.getKey()).equals(label.getValue()))
+        .collect(Collectors.toList());
   }
 }

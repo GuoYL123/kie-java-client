@@ -1,13 +1,15 @@
 package com.huaweicloud.kie;
 
-import static com.huaweicloud.kie.StaticConfig.FILE_PREFIX;
-
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.ValueType;
-import java.util.Map.Entry;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * @Author GuoYl123
@@ -28,34 +30,28 @@ public class FileConfigFactory extends AbstractConfigFactory {
    */
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
     KVResponse resp = dataSource.getSourceData();
-    return stageConfig(resp.getData(), () -> getFileConfig(resp, priorityLabels, key));
+    //todo: 返回null, option优化
+    return stageConfig(resp.getData(),
+        () -> marshal(resp.getData(), priorityLabels, key));
   }
 
-  private Config getFileConfig(KVResponse resp, TreeMap<String, String> priorityLabels,
+  private Config marshal(List<KVDoc> kvList, TreeMap<String, String> priorityLabels,
       String key) {
-    Config config = null;
-    for (KVDoc kvDoc : resp.getData()) {
-      if (!kvDoc.getKey().startsWith(FILE_PREFIX + key)) {
+    kvList = kvList.stream().filter(kv -> kv.getKey().equals(key))
+        .collect(Collectors.toList());
+    LinkedList<List<KVDoc>> priorityKVList = sortByProority(kvList, priorityLabels);
+    Map<String, Object> configsMap = new HashMap<>();
+    for (List<KVDoc> kvDocs : priorityKVList) {
+      if (kvDocs.isEmpty()) {
         continue;
       }
-      boolean ok = true;
-      //筛选出有所有label的kvDoc
-      for (Entry<String, String> label : priorityLabels.entrySet()) {
-        if (!(kvDoc.getLabels().containsKey(label.getKey())
-            && kvDoc.getLabels().get(label.getKey()).equals(label.getValue()))) {
-          ok = false;
-          break;
-        }
+      KVDoc kvDoc = kvDocs.get(0);
+      if (!kvDoc.getValueType().equals(ValueType.text.name())) {
+        kvDoc.setKey("");
       }
-      if (ok) {
-        String kvKey = kvDoc.getKey();
-        if (!kvDoc.getValueType().equals(ValueType.text.name())) {
-          kvDoc.setKey("");
-        }
-        config = new Config(kvKey, processValueType(kvDoc));
-        break;
-      }
+      configsMap.putAll(processValueType(kvDoc));
     }
-    return config;
+    return new Config(key, configsMap);
   }
+
 }

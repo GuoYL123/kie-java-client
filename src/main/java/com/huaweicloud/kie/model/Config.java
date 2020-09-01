@@ -1,5 +1,6 @@
 package com.huaweicloud.kie.model;
 
+import com.huaweicloud.kie.event.ConfigChangeEvent;
 import com.huaweicloud.kie.event.KieConfigEventBus;
 import java.util.Map;
 import java.util.function.Function;
@@ -19,14 +20,14 @@ public class Config {
     this.content = content;
   }
 
-  public void addListener(Function<Config, Void> callback) {
-    KieConfigEventBus.getInstance()
-        .register(event -> {
-          if (event.getMessage().equals(key)) {
-            callback.apply(this);
-          }
-        });
-
+  /**
+   * 当前事件通知可能不准确
+   * 不会少通知，但会多通知
+   *
+   * @param callback
+   */
+  public void addListener(Function<ConfigChangeEvent, Void> callback) {
+    KieConfigEventBus.getInstance().register(callback::apply);
   }
 
   public String getKey() {

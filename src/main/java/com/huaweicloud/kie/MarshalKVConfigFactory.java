@@ -1,5 +1,7 @@
 package com.huaweicloud.kie;
 
+import static com.huaweicloud.kie.StaticConfig.FILE_PREFIX;
+
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import java.util.HashMap;
@@ -9,8 +11,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @Author GuoYl123
@@ -18,29 +18,13 @@ import org.slf4j.LoggerFactory;
  **/
 public class MarshalKVConfigFactory extends AbstractConfigFactory {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(MarshalKVConfigFactory.class);
-
-  private ConfigRepository dataSource;
-
-
-
-  public MarshalKVConfigFactory(ConfigRepository dataSource) {
-    this.dataSource = dataSource;
+  MarshalKVConfigFactory(ConfigRepository dataSource) {
+    super(dataSource);
   }
 
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
     List<KVDoc> kvList = dataSource.getSourceData().getData().stream()
         .filter(data -> !data.getKey().startsWith(FILE_PREFIX)).collect(Collectors.toList());
-//    try {
-//      String md5 = objectMapper.writeValueAsString(kvList);
-//      if (md5.equals(this.md5)) {
-//        return stageConfig;
-//      }
-//      this.md5 = md5;
-//    } catch (JsonProcessingException e) {
-//      LOGGER.error("parse json failed");
-//    }
-//    stageConfig = new Config(key, marshal(kvList, priorityLabels));
     return stageConfig(kvList, () -> new Config(key, marshal(kvList, priorityLabels)));
   }
 

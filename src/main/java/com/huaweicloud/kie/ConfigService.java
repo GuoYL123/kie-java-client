@@ -1,5 +1,8 @@
 package com.huaweicloud.kie;
 
+import static com.huaweicloud.kie.StaticConfig.DEFAULT_KEY;
+import static com.huaweicloud.kie.StaticConfig.FILE_PREFIX;
+
 import com.huaweicloud.kie.http.IpPort;
 import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.Config;
@@ -29,36 +32,48 @@ public class ConfigService {
     configRepository = new ConfigRepository(queryLabel, list, tlsConfig);
   }
 
-  private static final String DEFAULT_KEY = "";
 
   private Map<String, AbstractConfigFactory> factoryMap = new HashMap<>();
 
+
   /**
-   * todo: 解耦
-   * FileConfigFactory
-   * 根据 "." + key 的形式读取指定KV文件，并进行解析
-   * 文件根据app、service、env进行分区？
-   * 不做分层拉取,直接拉最底层  只做解析不做聚合
+   *  todo: 分层拉取得模型还是要保留
    *
-   * @param key
+   *  根据 "KIEFILE." + fileName 的形式读取指定KV文件，并进行解析
+   *  文件根据app、service、env进行分区, 不做分层拉取,直接拉最底层  只做解析不做聚合
+   *
+   * @param fileName
    * @return
    */
-  public Config getConfig(String key) {
-    factoryMap.putIfAbsent(key, new FileConfigFactory(configRepository));
-    AbstractConfigFactory configFactory = factoryMap.get(key);
-    return configFactory.getConfig(priorityLabels, key);
+  public Config getFileConfig(String fileName) {
+    fileName = FILE_PREFIX + fileName;
+    factoryMap.putIfAbsent(fileName, new FileConfigFactory(configRepository));
+    AbstractConfigFactory configFactory = factoryMap.get(fileName);
+    return configFactory.getConfig(priorityLabels, fileName);
   }
 
 
   /**
-   * KVConfigFactory
+   *
    * 根据 预设的 app、service、env 进行全量配置的 分层拉取 和 聚合
    *
    * @return
    */
-  public Config getConfig() {
+  public Config getAggregationConfig() {
     factoryMap.putIfAbsent(DEFAULT_KEY, new MarshalKVConfigFactory(configRepository));
     AbstractConfigFactory configFactory = factoryMap.get(DEFAULT_KEY);
     return configFactory.getConfig(priorityLabels, DEFAULT_KEY);
+  }
+
+  /**
+   * 直接根据key和对应label返回指定配置
+   *
+   * @param key
+   * @return
+   */
+  public Config getRawConfig(String key, Map<String, String> labels) {
+    factoryMap.putIfAbsent(key, new DefaultConfigFactory(configRepository, labels));
+    AbstractConfigFactory configFactory = factoryMap.get(key);
+    return configFactory.getConfig(priorityLabels, key);
   }
 }

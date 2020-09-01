@@ -19,3 +19,4 @@ After you launch kie server, you can browse API doc in http://127.0.0.1:30110/ap
 2. 支持增量配置的拉取，减少网络消耗以及服务端压力。
 3. 支持客户端限流的实现，避免网络发生错误时频繁请求。
 4. 支持解析ini和json格式的配置内容。
+5. 在进行marshal时要区分不同value type的优先级，目前没有区分，优先级随机，可能发生覆盖。

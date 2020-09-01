@@ -1,5 +1,7 @@
 package com.huaweicloud.kie;
 
+import static com.huaweicloud.kie.StaticConfig.FILE_PREFIX;
+
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
@@ -13,10 +15,8 @@ import java.util.TreeMap;
  **/
 public class FileConfigFactory extends AbstractConfigFactory {
 
-  private ConfigRepository dataSource;
-
-  public FileConfigFactory(ConfigRepository dataSource) {
-    this.dataSource = dataSource;
+  FileConfigFactory(ConfigRepository dataSource) {
+    super(dataSource);
   }
 
 

@@ -29,11 +29,15 @@ public abstract class AbstractConfigFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFactory.class);
 
-  protected static final String FILE_PREFIX = "KIEFILE.";
-
   private String md5;
 
   private Config stageConfig;
+
+  protected ConfigRepository dataSource;
+
+  public AbstractConfigFactory(ConfigRepository dataSource) {
+    this.dataSource = dataSource;
+  }
 
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);

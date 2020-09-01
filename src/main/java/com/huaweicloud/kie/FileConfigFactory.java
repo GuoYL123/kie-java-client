@@ -3,6 +3,7 @@ package com.huaweicloud.kie;
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.KVResponse;
+import com.huaweicloud.kie.model.ValueType;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -27,9 +28,14 @@ public class FileConfigFactory extends AbstractConfigFactory {
    */
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
     KVResponse resp = dataSource.getSourceData();
+    return stageConfig(resp.getData(), () -> getFileConfig(resp, priorityLabels, key));
+  }
+
+  private Config getFileConfig(KVResponse resp, TreeMap<String, String> priorityLabels,
+      String key) {
     Config config = null;
     for (KVDoc kvDoc : resp.getData()) {
-      if (!kvDoc.getKey().startsWith("." + key)) {
+      if (!kvDoc.getKey().startsWith(FILE_PREFIX + key)) {
         continue;
       }
       boolean ok = true;
@@ -42,7 +48,11 @@ public class FileConfigFactory extends AbstractConfigFactory {
         }
       }
       if (ok) {
-        config = new Config(kvDoc.getKey(), processValueType(kvDoc));
+        String kvKey = kvDoc.getKey();
+        if (!kvDoc.getValueType().equals(ValueType.text.name())) {
+          kvDoc.setKey("");
+        }
+        config = new Config(kvKey, processValueType(kvDoc));
         break;
       }
     }

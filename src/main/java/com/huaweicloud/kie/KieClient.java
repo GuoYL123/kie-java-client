@@ -17,6 +17,7 @@
 
 package com.huaweicloud.kie;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.huaweicloud.kie.http.HttpResponse;
 import com.huaweicloud.kie.http.IpPort;
 import com.huaweicloud.kie.http.TLSConfig;
@@ -44,7 +45,7 @@ public class KieClient {
 
   private static ObjectMapper mapper = new ObjectMapper();
 
-  private Map<String, String> revisionMap = new HashMap<>();
+  private String revison = "0";
 
   private KieRawClient httpClient;
 
@@ -87,7 +88,7 @@ public class KieClient {
    * @param project
    * @return
    */
-  public String postKeyValue(KVBody kvBody, String project) {
+  public String postKeyValue(KVBody kvBody, String project) throws IOException {
     try {
       HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/", null,
           mapper.writeValueAsString(kvBody));
@@ -98,8 +99,8 @@ public class KieClient {
             "create keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
-    } catch (IOException e) {
-      LOGGER.error("io exception , ", e);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("resp parse error , ", e);
     }
     return null;
   }
@@ -111,7 +112,7 @@ public class KieClient {
    * @param kvBody
    * @return key-value json string; when some error happens, return null
    */
-  public String putKeyValue(String kvID, KVBody kvBody, String project) {
+  public String putKeyValue(String kvID, KVBody kvBody, String project) throws IOException {
     try {
       HttpResponse response = httpClient.putHttpRequest("/" + project + "/kie/kv/" + kvID, null,
           mapper.writeValueAsString(kvBody));
@@ -122,8 +123,8 @@ public class KieClient {
             "mdoify keyValue fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
-    } catch (IOException e) {
-      LOGGER.error("io exception , ", e);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("resp parse error , ", e);
     }
     return null;
   }
@@ -137,7 +138,8 @@ public class KieClient {
    */
   public KVResponse queryKV(String key, Map<String, String> labels, String match,
       String pageNum, String pageSize, String sessionID, String status, String project,
-      String wait, boolean isWatch) {
+      String wait, boolean isWatch) throws IOException {
+    //todo: 限流
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/kv");
       if (labels != null && labels.size() > 0) {
@@ -162,13 +164,13 @@ public class KieClient {
         uri.addParameter("wait", wait);
       }
       if (isWatch) {
-        uri.addParameter("revision", revisionMap.get(key));
+        uri.addParameter("revision", revison);
       }
       Map<String, String> header = new HashMap<>();
       header.put("sessionID", sessionID);
       HttpResponse response = httpClient.getHttpRequest(uri.build().toString(), header, null);
       if (response.getStatusCode() == HttpStatus.SC_OK) {
-        revisionMap.put(key, response.getHeader("X-Kie-Revision"));
+        revison = response.getHeader("X-Kie-Revision");
         return mapper.readValue(response.getContent(), KVResponse.class);
       } else if (response.getStatusCode() == HttpStatus.SC_NOT_MODIFIED) {
         return null;
@@ -176,12 +178,12 @@ public class KieClient {
         LOGGER.error("get value of key fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
-    } catch (IOException e) {
-      LOGGER.error("io exception , ", e);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("resp parse error , ", e);
     } catch (URISyntaxException e) {
       LOGGER.error("parse object failed ,", e);
     }
-    throw new RuntimeException("error occur when fetch config.");
+    return null;
   }
 
   public KVDoc getKVByID(String kvID, String project) {
@@ -208,7 +210,7 @@ public class KieClient {
    *
    * @return void
    */
-  public String deleteKeyValue(String kvID, String labelId, String project) {
+  public String deleteKeyValue(String kvID, String labelId, String project) throws IOException {
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/kv/" + kvID);
       if (labelId != null && !labelId.equals("")) {
@@ -235,7 +237,7 @@ public class KieClient {
    * @return void
    */
   public List<LabelHistoryResponse> getRevisionByLabelId(String labelId, String key, String pageNum,
-      String pageSize, String project) {
+      String pageSize, String project) throws IOException {
     try {
       URIBuilder uri = new URIBuilder("/" + project + "/kie/revision/" + labelId);
       if (key != null && !key.equals("")) {
@@ -257,8 +259,8 @@ public class KieClient {
             "get revision failed, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
       }
-    } catch (IOException e) {
-      LOGGER.error("io exception , ", e);
+    } catch (JsonProcessingException e) {
+      LOGGER.error("resp parse error , ", e);
     } catch (URISyntaxException e) {
       LOGGER.error("parse object failed ,", e);
     }

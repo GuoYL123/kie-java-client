@@ -22,9 +22,8 @@ package com.huaweicloud.kie.model;
  * @Date 2020/1/8
  **/
 public enum ValueType {
-  yml,
   yaml,
-  string,
+  ini,
   text,
   json,
   properties

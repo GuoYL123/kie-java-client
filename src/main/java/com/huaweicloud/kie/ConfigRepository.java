@@ -2,8 +2,12 @@ package com.huaweicloud.kie;
 
 import com.huaweicloud.kie.event.ConfigChangeEvent;
 import com.huaweicloud.kie.event.KieConfigEventBus;
+import com.huaweicloud.kie.http.IpPort;
+import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.KVStatus;
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -14,7 +18,7 @@ import java.util.concurrent.ScheduledExecutorService;
  **/
 public class ConfigRepository {
 
-  private KieClient kieClient = new KieClient();
+  private KieClient kieClient;
 
   private KieConfigEventBus kieConfigEventBus = KieConfigEventBus.getInstance();
 
@@ -29,9 +33,10 @@ public class ConfigRepository {
     return thread;
   });
 
-  public ConfigRepository(Map<String, String> queryLabel) {
+  public ConfigRepository(Map<String, String> queryLabel, List<IpPort> list, TLSConfig tlsConfig) {
+    kieClient = new KieClient(list, tlsConfig);
     this.queryLabel = queryLabel;
-    EXECUTOR.execute(this::watch);
+    watch();
   }
 
 
@@ -57,7 +62,17 @@ public class ConfigRepository {
    * @return
    */
   private KVResponse getConfig() {
-    return kieClient.queryKV(null, queryLabel, null, null,
-        null, "", KVStatus.enabled.name(), "default", "30s", true);
+    try {
+      return kieClient.queryKV(null, queryLabel, null, null,
+          null, "", KVStatus.enabled.name(), "default", "30s", true);
+    } catch (IOException e) {
+      //todo: 限流
+      try {
+        Thread.sleep(3000);
+      } catch (InterruptedException ex) {
+        ex.printStackTrace();
+      }
+      return null;
+    }
   }
 }

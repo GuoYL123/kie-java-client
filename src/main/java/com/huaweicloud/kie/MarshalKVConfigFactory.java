@@ -1,8 +1,5 @@
 package com.huaweicloud.kie;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import java.util.HashMap;
@@ -25,13 +22,7 @@ public class MarshalKVConfigFactory extends AbstractConfigFactory {
 
   private ConfigRepository dataSource;
 
-  private String md5;
 
-  private static final ObjectMapper objectMapper = new ObjectMapper()
-      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-
-  //todo： 解析费时，是否考虑缓存
-  private Config stageConfig;
 
   public MarshalKVConfigFactory(ConfigRepository dataSource) {
     this.dataSource = dataSource;
@@ -39,17 +30,18 @@ public class MarshalKVConfigFactory extends AbstractConfigFactory {
 
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
     List<KVDoc> kvList = dataSource.getSourceData().getData().stream()
-        .filter(data -> !data.getKey().startsWith(".")).collect(Collectors.toList());
-    try {
-      String md5 = objectMapper.writeValueAsString(kvList);
-      if (md5.equals(this.md5)) {
-        return stageConfig;
-      }
-      this.md5 = md5;
-    } catch (JsonProcessingException e) {
-      LOGGER.error("parse json failed");
-    }
-    return new Config(key, marshal(kvList, priorityLabels));
+        .filter(data -> !data.getKey().startsWith(FILE_PREFIX)).collect(Collectors.toList());
+//    try {
+//      String md5 = objectMapper.writeValueAsString(kvList);
+//      if (md5.equals(this.md5)) {
+//        return stageConfig;
+//      }
+//      this.md5 = md5;
+//    } catch (JsonProcessingException e) {
+//      LOGGER.error("parse json failed");
+//    }
+//    stageConfig = new Config(key, marshal(kvList, priorityLabels));
+    return stageConfig(kvList, () -> new Config(key, marshal(kvList, priorityLabels)));
   }
 
   private Map<String, Object> marshal(List<KVDoc> kvList, TreeMap<String, String> priorityLabels) {

@@ -1,5 +1,8 @@
 package com.huaweicloud.kie;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
 import com.huaweicloud.kie.model.ValueType;
@@ -7,9 +10,11 @@ import java.io.StringReader;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
@@ -24,6 +29,15 @@ public abstract class AbstractConfigFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFactory.class);
 
+  protected static final String FILE_PREFIX = "KIEFILE.";
+
+  private String md5;
+
+  private Config stageConfig;
+
+  private static final ObjectMapper objectMapper = new ObjectMapper()
+      .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+
   abstract Config getConfig(TreeMap<String, String> priorityLabels, String key);
 
   protected Map<String, Object> processValueType(KVDoc kvDoc) {
@@ -36,8 +50,8 @@ public abstract class AbstractConfigFactory {
     Properties properties = new Properties();
     Map<String, Object> kvMap = new HashMap<>();
     try {
+      //todo: 支持ini、json格式
       switch (vtype) {
-        case yml:
         case yaml:
           YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
           yamlFactory.setResources(new ByteArrayResource(kvDoc.getValue().getBytes()));
@@ -46,7 +60,8 @@ public abstract class AbstractConfigFactory {
           properties.load(new StringReader(kvDoc.getValue()));
           return toMap(kvDoc.getKey(), properties);
         case text:
-        case string:
+        case ini:
+        case json:
         default:
           kvMap.put(kvDoc.getKey(), kvDoc.getValue());
           return kvMap;
@@ -78,4 +93,18 @@ public abstract class AbstractConfigFactory {
     return result;
   }
 
+
+  protected Config stageConfig(List<KVDoc> kvList, Supplier<Config> function) {
+    try {
+      String md5 = objectMapper.writeValueAsString(kvList);
+      if (md5.equals(this.md5)) {
+        return stageConfig;
+      }
+      this.md5 = md5;
+    } catch (JsonProcessingException e) {
+      LOGGER.error("parse json failed");
+    }
+    stageConfig = function.get();
+    return stageConfig;
+  }
 }

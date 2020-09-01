@@ -76,7 +76,8 @@ public class KieRawClient {
     this.basePath = ipPortMgr.getHost() + ":" + ipPortMgr.getPort() + "/" + V1_PREFIX;
   }
 
-  public HttpResponse getHttpRequest(String url, Map<String, String> headers, String content) {
+  public HttpResponse getHttpRequest(String url, Map<String, String> headers, String content)
+      throws IOException {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -87,13 +88,13 @@ public class KieRawClient {
     try {
       return httpTransport.get(httpRequest);
     } catch (IOException e) {
-      toggle();
-      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+      toggle(e);
     }
     return null;
   }
 
-  public HttpResponse postHttpRequest(String url, Map<String, String> headers, String content) {
+  public HttpResponse postHttpRequest(String url, Map<String, String> headers, String content)
+      throws IOException {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -104,13 +105,13 @@ public class KieRawClient {
     try {
       return httpTransport.post(httpRequest);
     } catch (IOException e) {
-      toggle();
-      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+      toggle(e);
     }
     return null;
   }
 
-  public HttpResponse putHttpRequest(String url, Map<String, String> headers, String content) {
+  public HttpResponse putHttpRequest(String url, Map<String, String> headers, String content)
+      throws IOException {
 
     if (headers == null) {
       headers = new HashMap<String, String>();
@@ -121,13 +122,13 @@ public class KieRawClient {
     try {
       return httpTransport.put(httpRequest);
     } catch (IOException e) {
-      toggle();
-      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+      toggle(e);
     }
     return null;
   }
 
-  public HttpResponse deleteHttpRequest(String url, Map<String, String> headers, String content) {
+  public HttpResponse deleteHttpRequest(String url, Map<String, String> headers, String content)
+      throws IOException {
 
     if (headers == null) {
       headers = new HashMap<>();
@@ -138,15 +139,16 @@ public class KieRawClient {
     try {
       return httpTransport.delete(httpRequest);
     } catch (IOException e) {
-      toggle();
-      LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+      toggle(e);
     }
     return null;
   }
 
-  private void toggle() {
+  private void toggle(IOException e) throws IOException {
     ipPortMgr.toggle();
     this.basePath = ipPortMgr.getHost() + ":" + ipPortMgr.getPort() + "/" + V1_PREFIX;
+    LOGGER.error("kie unavailable.error message= : " + e.getMessage());
+    throw e;
   }
 
   public static class Builder {

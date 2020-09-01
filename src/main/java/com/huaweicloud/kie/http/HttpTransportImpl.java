@@ -30,10 +30,8 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 
@@ -43,7 +41,7 @@ public class HttpTransportImpl implements HttpTransport {
 
   protected static final int DEFAULT_MAX_PER_ROUTE = 500;
 
-  protected static final int DEFAULT_REQUEST_TIMEOUT = 5000;
+  protected static final int DEFAULT_SOCKET_TIMEOUT = 50000;
 
   protected static final int DEFAULT_CONNECTION_TIMEOUT = 5000;
 
@@ -79,7 +77,7 @@ public class HttpTransportImpl implements HttpTransport {
     RequestConfig config = RequestConfig.custom().
         setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT).
         setConnectionRequestTimeout(DEFAULT_CONNECTION_TIMEOUT).
-        setSocketTimeout(DEFAULT_REQUEST_TIMEOUT).
+        setSocketTimeout(DEFAULT_SOCKET_TIMEOUT).
         build();
 
     // construct httpClient

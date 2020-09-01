@@ -44,4 +44,12 @@ public class Config {
   public void setContent(Map<String, Object> content) {
     this.content = content;
   }
+
+  @Override
+  public String toString() {
+    return "Config{" +
+        "key='" + key + '\'' +
+        ", content=" + content +
+        '}';
+  }
 }

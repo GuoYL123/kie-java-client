@@ -1,7 +1,10 @@
 package com.huaweicloud.kie;
 
+import com.huaweicloud.kie.http.IpPort;
+import com.huaweicloud.kie.http.TLSConfig;
 import com.huaweicloud.kie.model.Config;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -16,14 +19,14 @@ public class ConfigService {
 
   private ConfigRepository configRepository;
 
-  public void init(TreeMap<String, String> priorityLabels) {
+  public void init(TreeMap<String, String> priorityLabels, List<IpPort> list, TLSConfig tlsConfig) {
     this.priorityLabels = priorityLabels;
     Map<String, String> queryLabel = new HashMap<>();
     if (priorityLabels != null && priorityLabels.size() > 0) {
       Entry<String, String> entry = priorityLabels.firstEntry();
       queryLabel.put(entry.getKey(), entry.getValue());
     }
-    configRepository = new ConfigRepository(queryLabel);
+    configRepository = new ConfigRepository(queryLabel, list, tlsConfig);
   }
 
   private static final String DEFAULT_KEY = "";
@@ -31,6 +34,7 @@ public class ConfigService {
   private Map<String, AbstractConfigFactory> factoryMap = new HashMap<>();
 
   /**
+   * todo: 解耦
    * FileConfigFactory
    * 根据 "." + key 的形式读取指定KV文件，并进行解析
    * 文件根据app、service、env进行分区？

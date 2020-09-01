@@ -87,7 +87,7 @@ public class TLSHttpsTransport extends HttpTransportImpl {
     RequestConfig config = RequestConfig.custom().
         setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT).
         setConnectionRequestTimeout(DEFAULT_CONNECTION_TIMEOUT).
-        setSocketTimeout(DEFAULT_REQUEST_TIMEOUT).
+        setSocketTimeout(DEFAULT_SOCKET_TIMEOUT).
         build();
 
     // construct httpClient

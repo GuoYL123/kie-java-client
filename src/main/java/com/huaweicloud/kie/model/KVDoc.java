@@ -26,25 +26,28 @@ public class KVDoc {
 
   private String id;
 
-  private String check;
-
-  private String domain;
-
   private String key;
-
-  @JsonAlias("label_id")
-  private String labelId;
-
-  private Map<String, String> labels = new HashMap<String, String>();
-
-  private Integer revision;
 
   private String value;
 
   @JsonAlias("value_type")
   private String valueType;
 
+  @JsonAlias("create_revision")
+  private String createRevision;
+
+  @JsonAlias("update_revision")
+  private String updateRevision;
+
   private String status;
+
+  @JsonAlias("create_time")
+  private String createTime;
+
+  @JsonAlias("update_time")
+  private String updateTime;
+
+  private Map<String, String> labels = new HashMap<String, String>();
 
   public String getId() {
     return id;
@@ -62,52 +65,8 @@ public class KVDoc {
     this.key = key;
   }
 
-  public String getCheck() {
-    return check;
-  }
-
-  public String getDomain() {
-    return domain;
-  }
-
-  public String getLabelId() {
-    return labelId;
-  }
-
-  public Map<String, String> getLabels() {
-    return labels;
-  }
-
-  public Integer getRevision() {
-    return revision;
-  }
-
   public String getValue() {
     return value;
-  }
-
-  public void setCheck(String check) {
-    this.check = check;
-  }
-
-  public void setDomain(String domain) {
-    this.domain = domain;
-  }
-
-  public void setLabelId(String labelId) {
-    this.labelId = labelId;
-  }
-
-  public void setLabels(Map<String, String> labels) {
-    this.labels = labels;
-  }
-
-  public void setRevision(Integer revision) {
-    this.revision = revision;
-  }
-
-  public void setValueType(String valueType) {
-    this.valueType = valueType;
   }
 
   public void setValue(String value) {
@@ -118,6 +77,26 @@ public class KVDoc {
     return valueType;
   }
 
+  public void setValueType(String valueType) {
+    this.valueType = valueType;
+  }
+
+  public String getCreateRevision() {
+    return createRevision;
+  }
+
+  public void setCreateRevision(String createRevision) {
+    this.createRevision = createRevision;
+  }
+
+  public String getUpdateRevision() {
+    return updateRevision;
+  }
+
+  public void setUpdateRevision(String updateRevision) {
+    this.updateRevision = updateRevision;
+  }
+
   public String getStatus() {
     return status;
   }
@@ -126,19 +105,43 @@ public class KVDoc {
     this.status = status;
   }
 
+  public String getCreateTime() {
+    return createTime;
+  }
+
+  public void setCreateTime(String createTime) {
+    this.createTime = createTime;
+  }
+
+  public String getUpdateTime() {
+    return updateTime;
+  }
+
+  public void setUpdateTime(String updateTime) {
+    this.updateTime = updateTime;
+  }
+
+  public Map<String, String> getLabels() {
+    return labels;
+  }
+
+  public void setLabels(Map<String, String> labels) {
+    this.labels = labels;
+  }
+
   @Override
   public String toString() {
     return "KVDoc{" +
         "id='" + id + '\'' +
-        ", check='" + check + '\'' +
-        ", domain='" + domain + '\'' +
         ", key='" + key + '\'' +
-        ", labelId='" + labelId + '\'' +
-        ", labels=" + labels +
-        ", revision=" + revision +
         ", value='" + value + '\'' +
         ", valueType='" + valueType + '\'' +
+        ", createRevision='" + createRevision + '\'' +
+        ", updateRevision='" + updateRevision + '\'' +
         ", status='" + status + '\'' +
+        ", createTime='" + createTime + '\'' +
+        ", updateTime='" + updateTime + '\'' +
+        ", labels=" + labels +
         '}';
   }
 }

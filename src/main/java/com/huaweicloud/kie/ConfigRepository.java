@@ -48,6 +48,8 @@ public class ConfigRepository {
       return;
     }
     this.remoteConfig = remoteConfig;
+    //同一label下的config都会接受到event
+    //所以会出现接收到event但是配置没有发生变化的情况，业务要自己评估影响。
     kieConfigEventBus.fire(new ConfigChangeEvent());
     //继续监听
     EXECUTOR.execute(this::watch);

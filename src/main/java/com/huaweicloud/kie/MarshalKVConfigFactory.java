@@ -33,7 +33,7 @@ public class MarshalKVConfigFactory extends AbstractConfigFactory {
     //todo: 不同value Type的优先级
     for (List<KVDoc> kvDocs : priorityKVList) {
       for (KVDoc kvDoc : kvDocs) {
-        configsMap.putAll(processValueType(kvDoc));
+        configsMap.putAll(processValueType(kvDoc, kvDoc.getKey()));
       }
     }
     return new Config(key, configsMap);

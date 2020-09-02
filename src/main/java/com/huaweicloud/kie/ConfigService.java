@@ -37,8 +37,6 @@ public class ConfigService {
 
 
   /**
-   *  todo: 分层拉取得模型还是要保留
-   *
    *  根据 "KIEFILE." + fileName 的形式读取指定KV文件，并进行解析
    *  文件根据app、service、env进行分区, 不做分层拉取,直接拉最底层  只做解析不做聚合
    *

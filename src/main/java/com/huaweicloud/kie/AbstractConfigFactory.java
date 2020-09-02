@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
  * @Author GuoYl123
  * @Date 2020/8/29
  **/
-public abstract class AbstractConfigFactory {
+public abstract class AbstractConfigFactory implements ConfigFactory {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractConfigFactory.class);
 
@@ -45,9 +45,7 @@ public abstract class AbstractConfigFactory {
   private static final ObjectMapper objectMapper = new ObjectMapper()
       .configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
-  abstract Config getConfig(TreeMap<String, String> priorityLabels, String key);
-
-  protected Map<String, Object> processValueType(KVDoc kvDoc) {
+  protected Map<String, Object> processValueType(KVDoc kvDoc, String prefix) {
     ValueType vtype;
     try {
       vtype = ValueType.valueOf(kvDoc.getValueType());
@@ -62,15 +60,15 @@ public abstract class AbstractConfigFactory {
         case yaml:
           YamlPropertiesFactoryBean yamlFactory = new YamlPropertiesFactoryBean();
           yamlFactory.setResources(new ByteArrayResource(kvDoc.getValue().getBytes()));
-          return toMap(kvDoc.getKey(), yamlFactory.getObject());
+          return toMap(prefix, yamlFactory.getObject());
         case properties:
           properties.load(new StringReader(kvDoc.getValue()));
-          return toMap(kvDoc.getKey(), properties);
+          return toMap(prefix, properties);
         case text:
         case ini:
         case json:
         default:
-          kvMap.put(kvDoc.getKey(), kvDoc.getValue());
+          kvMap.put(prefix, kvDoc.getValue());
           return kvMap;
       }
     } catch (Exception e) {

@@ -9,5 +9,5 @@ import java.util.TreeMap;
  **/
 public interface ConfigFactory {
 
-  Config getConfig(TreeMap<String, String> priorityLabels);
+  Config getConfig(TreeMap<String, String> priorityLabels, String key);
 }

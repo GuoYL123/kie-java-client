@@ -2,7 +2,6 @@ package com.huaweicloud.kie;
 
 import com.huaweicloud.kie.model.Config;
 import com.huaweicloud.kie.model.KVDoc;
-import com.huaweicloud.kie.model.KVResponse;
 import com.huaweicloud.kie.model.ValueType;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,10 +28,8 @@ public class FileConfigFactory extends AbstractConfigFactory {
    * @return
    */
   public Config getConfig(TreeMap<String, String> priorityLabels, String key) {
-    KVResponse resp = dataSource.getSourceData();
-    //todo: 返回null, option优化
-    return stageConfig(resp.getData(),
-        () -> marshal(resp.getData(), priorityLabels, key));
+    List<KVDoc> kvList = dataSource.getSourceData().getData();
+    return stageConfig(kvList, () -> marshal(kvList, priorityLabels, key));
   }
 
   private Config marshal(List<KVDoc> kvList, TreeMap<String, String> priorityLabels,
@@ -46,10 +43,11 @@ public class FileConfigFactory extends AbstractConfigFactory {
         continue;
       }
       KVDoc kvDoc = kvDocs.get(0);
+      String prefix = kvDoc.getKey();
       if (!kvDoc.getValueType().equals(ValueType.text.name())) {
-        kvDoc.setKey("");
+        prefix = "";
       }
-      configsMap.putAll(processValueType(kvDoc));
+      configsMap.putAll(processValueType(kvDoc, prefix));
     }
     return new Config(key, configsMap);
   }

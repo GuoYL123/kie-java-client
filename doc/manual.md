@@ -79,17 +79,17 @@ public class ConfigController {
         ```java
         public Config configService.getAggregationConfig()
         ```
-       使用该方法获取配置会把kie中的key作为前缀，根据value_type中的内容进行优先级聚合。
+       使用该方法获取配置会把kie中的key作为前缀，根据value_type中的内容进行解析，对内容根据设定的labels进行优先级聚合。
     2. 使用getFileConfig获取配置
         ```java
         public Config configService.getFileConfig(String key)
         ```
-       使用该方法获取配置会把key加上前缀'KIEFILE.'，查找指定label下面的配置，直接对value的内容按照value type进行解析。
+       使用该方法获取配置会把key加上前缀'KIEFILE.'，查找指定label下面的配置，直接对value的内容按照value_type进行解析，对内容根据设定的labels进行优先级聚合。
     3. 使用getRawConfig获取配置
         ```java
         public Config configService.getRawConfig(String key, Map<String, String> labels)
         ```
-       使用该方法获取指定key和labels的配置，如果有多个，则取第一个。直接对value的内容按照value type进行解析。
+       使用该方法获取指定key和包含指定labels的配置，如果有多个，则取第一个。直接对value的内容按照value type进行解析。
 4. 注册监听：
   获取到的Config对象可以利用config.addListener(()->dosomething())添加监听方法，在配置变更时进行业务处理。
   

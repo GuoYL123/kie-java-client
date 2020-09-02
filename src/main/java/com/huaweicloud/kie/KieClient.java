@@ -176,6 +176,7 @@ public class KieClient {
       } else {
         LOGGER.error("get value of key fails, responseStatusCode={}, responseMessage={}, responseContent{}",
             response.getStatusCode(), response.getMessage(), response.getContent());
+        throw new IOException("backend node is abnormal.");
       }
     } catch (JsonProcessingException e) {
       LOGGER.error("resp parse error , ", e);

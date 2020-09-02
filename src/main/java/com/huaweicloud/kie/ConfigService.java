@@ -22,16 +22,26 @@ public class ConfigService {
 
   private ConfigRepository configRepository;
 
-  public void init(TreeMap<String, String> priorityLabels, List<IpPort> list, TLSConfig tlsConfig) {
+  public void ConfigService(TreeMap<String, String> priorityLabels, List<IpPort> list,
+      TLSConfig tlsConfig, boolean enableFile, String fileDir) {
+    configRepository = new ConfigRepository(init(priorityLabels), list, tlsConfig, enableFile,
+        fileDir);
+  }
+
+  public void ConfigService(TreeMap<String, String> priorityLabels, List<IpPort> list,
+      TLSConfig tlsConfig) {
+    configRepository = new ConfigRepository(init(priorityLabels), list, tlsConfig);
+  }
+
+  private Map<String, String> init(TreeMap<String, String> priorityLabels) {
     this.priorityLabels = priorityLabels;
     Map<String, String> queryLabel = new HashMap<>();
     if (priorityLabels != null && priorityLabels.size() > 0) {
       Entry<String, String> entry = priorityLabels.firstEntry();
       queryLabel.put(entry.getKey(), entry.getValue());
     }
-    configRepository = new ConfigRepository(queryLabel, list, tlsConfig);
+    return queryLabel;
   }
-
 
   private Map<String, AbstractConfigFactory> factoryMap = new HashMap<>();
 

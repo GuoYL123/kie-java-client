@@ -64,16 +64,19 @@ public class ConfigController {
 
 1. 新建一个ConfigService对象。
     ```java
-    ConfigService configService = new ConfigService();
-    ```
-2. 初始化：
-    ```java
-    configService.init(treeMap, Collections.singletonList(ipPort), null);
+    ConfigService configService = new ConfigService(treeMap, Collections.singletonList(ipPort), null);
     ```
    参数说明：  
-   init()方法接受一个treeMap，客户端会根据treeMap中的 **第一个元素** 从kie中拉取label中包含该label的k-v对，并缓存到本地。
+   ConfigService构造方法接受一个treeMap，客户端会根据treeMap中的 **第一个元素** 从kie中拉取label中包含该label的k-v对，并缓存到本地。
    缓存到本地的数据会按照treeMap中的label匹配情况进行优先级排序和聚合，这里理解起来可能比较复杂，可以结合[例子](./example.md)理解。
-   init()方法的第二个第三个参数分别代表kie的ip-port组合、ssl配置（没有传null）。
+   ConfigService构造方法的第二个第三个参数分别代表kie的ip-port组合、ssl配置（没有传null）。
+   
+    ```java
+    ConfigService configService = new ConfigService(treeMap, Collections.singletonList(ipPort), null, true, "./");
+    ```
+   参数说明：  
+   前三个参数同上，后面两个参数本别代表是否开启客户端落盘，以及客户端落盘路径。
+
 3. 配置获取：
     1. 使用getAggregationConfig获取配置
         ```java
